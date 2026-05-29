@@ -190,8 +190,10 @@ def set_user_view_mode(tg_id: int, mode: str):
 def create_folder(title: str, owner_tg_id: int) -> int:
     user = get_user(owner_tg_id)
     with db_conn() as conn:
-        cur = execute(conn, "INSERT INTO folders(title, owner_id) VALUES(%s,%s) RETURNING id", (title, user['id']))
-        return cur.fetchone()[0]
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO folders(title, owner_id) VALUES(%s,%s) RETURNING id", (title, user['id']))
+            row = cur.fetchone()
+        return row[0]
 
 def get_folder(folder_id: int):
     with db_conn() as conn:
@@ -249,11 +251,13 @@ def get_folder_by_token(token: str):
 def create_group(title: str, owner_tg_id: int, folder_id: int = None, parent_group_id: int = None) -> int:
     user = get_user(owner_tg_id)
     with db_conn() as conn:
-        cur = execute(conn,
-            "INSERT INTO groups(title, owner_id, folder_id, parent_group_id) VALUES(%s,%s,%s,%s) RETURNING id",
-            (title, user['id'], folder_id, parent_group_id)
-        )
-        return cur.fetchone()[0]
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO groups(title, owner_id, folder_id, parent_group_id) VALUES(%s,%s,%s,%s) RETURNING id",
+                (title, user['id'], folder_id, parent_group_id)
+            )
+            row = cur.fetchone()
+        return row[0]
 
 def get_group(group_id: int):
     with db_conn() as conn:
@@ -287,11 +291,13 @@ def update_group_title(group_id: int, title: str):
 def create_article(title: str, owner_tg_id: int, folder_id: int = None, group_id: int = None) -> int:
     user = get_user(owner_tg_id)
     with db_conn() as conn:
-        cur = execute(conn,
-            "INSERT INTO articles(title, owner_id, folder_id, group_id) VALUES(%s,%s,%s,%s) RETURNING id",
-            (title, user['id'], folder_id, group_id)
-        )
-        return cur.fetchone()[0]
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO articles(title, owner_id, folder_id, group_id) VALUES(%s,%s,%s,%s) RETURNING id",
+                (title, user['id'], folder_id, group_id)
+            )
+            row = cur.fetchone()
+        return row[0]
 
 def get_article(article_id: int):
     with db_conn() as conn:
