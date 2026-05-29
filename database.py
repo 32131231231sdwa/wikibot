@@ -35,9 +35,9 @@ def fetchone(conn, query, params=()):
         return cur.fetchone()
 
 def execute(conn, query, params=()):
-    with conn.cursor() as cur:
-        cur.execute(query, params)
-        return cur
+    cur = conn.cursor()
+    cur.execute(query, params)
+    return cur
 
 def init_db():
     with db_conn() as conn:
@@ -408,8 +408,10 @@ def add_block(article_id: int, block_type: str, content: str = None, file_id: st
             "INSERT INTO article_blocks(article_id, block_order, block_type, content, file_id) VALUES(%s,%s,%s,%s,%s) RETURNING id",
             (article_id, max_order + 1, block_type, content, file_id)
         )
+        new_id = cur.fetchone()[0]
+        cur.close()
         execute(conn, "UPDATE articles SET updated_at=CURRENT_TIMESTAMP WHERE id=%s", (article_id,))
-        return cur.fetchone()[0]
+        return new_id
 
 def get_article_blocks(article_id: int):
     with db_conn() as conn:
@@ -516,7 +518,9 @@ def add_comment(article_id: int, tg_id: int, text: str) -> int:
             "INSERT INTO comments(article_id, user_id, text) VALUES(%s,%s,%s) RETURNING id",
             (article_id, user['id'], text)
         )
-        return cur.fetchone()[0]
+        new_id = cur.fetchone()[0]
+        cur.close()
+        return new_id
 
 def get_comments(article_id: int, limit=20, offset=0):
     with db_conn() as conn:
